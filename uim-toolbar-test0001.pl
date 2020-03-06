@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 # uim toolbar for perl tkx
 
 use strict;
