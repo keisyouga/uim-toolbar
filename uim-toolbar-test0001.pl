@@ -161,6 +161,7 @@ if ($pid == 0) {
 # main window
 $top = Tkx::widget->new('.');
 $top->g_wm_focusmodel('active');
+$top->g_wm_attributes(-type => 'toolbar');
 Tkx::tk_useinputmethods(0);
 Tkx::after(1000, [\&sticky_window, $top]);
 
