@@ -158,9 +158,13 @@ if ($pid == 0) {
 	exit 1;
 }
 
+my $mw = Tkx::widget->new('.');
+$mw->g_wm_withdraw();
 # main window
-$top = Tkx::widget->new('.');
+$top = $mw->new_toplevel();
 $top->g_wm_focusmodel('active');
+$top->g_wm_attributes(-topmost => 1);
+$top->g_wm_transient($mw);
 $top->g_wm_attributes(-type => 'toolbar');
 Tkx::tk_useinputmethods(0);
 Tkx::after(1000, [\&sticky_window, $top]);
