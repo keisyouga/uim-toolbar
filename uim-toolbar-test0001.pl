@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# uim toolbar for perl tkx
+# uim toolbar using perl tkx
 
 use strict;
 use warnings;
