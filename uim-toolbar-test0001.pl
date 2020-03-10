@@ -162,6 +162,8 @@ my $mw = Tkx::widget->new('.');
 $mw->g_wm_withdraw();
 # main window
 $top = $mw->new_toplevel();
+$top->new_button(-text => 'exit', -command => sub {$mw->g_destroy();}
+                )->g_pack(-side => 'right');
 $top->g_wm_focusmodel('active');
 $top->g_wm_attributes(-topmost => 1);
 $top->g_wm_transient($mw);
