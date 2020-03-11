@@ -167,7 +167,7 @@ $top->new_button(-text => 'exit', -command => sub {$mw->g_destroy();}
 $top->g_wm_focusmodel('active');
 $top->g_wm_attributes(-topmost => 1);
 $top->g_wm_transient($mw);
-$top->g_wm_attributes(-type => 'toolbar');
+$top->g_wm_attributes(-type => 'dock');
 Tkx::tk_useinputmethods(0);
 Tkx::after(1000, [\&sticky_window, $top]);
 
