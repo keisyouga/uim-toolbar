@@ -71,7 +71,7 @@ sub read_cb {
 	my $combo = undef;
 	for my $line (@lines) {
 		#print STDERR "$line\n";
-		my @fileds = split /\t/, $line;
+		my @fields = split /\t/, $line;
 
 		if ($line =~ /^prop_list_update/) {
 			Tkx::destroy(keys %props);
@@ -81,7 +81,7 @@ sub read_cb {
 
 		if ($line =~ /^branch/) {
 			$combo = $top->new_ttk__combobox(-state => 'readonly');
-			$combo->set($fileds[3]); # branch's label string
+			$combo->set($fields[3]); # branch's label string
 			$combo->g_pack(-side => 'left');
 			$combo->g_bind('<<ComboboxSelected>>' =>
 			               [sub {
@@ -94,10 +94,10 @@ sub read_cb {
 
 		if ($combo && $line =~ /^leaf/) {
 			# append to props. $combo used as hash-key
-			$props{$combo}[scalar @{$props{$combo}}] = \@fileds;
+			$props{$combo}[scalar @{$props{$combo}}] = \@fields;
 
 			# append combobox item
-			my $v = $combo->cget('-values') . " " . Tkx::list($fileds[3]); # leaf's label string
+			my $v = $combo->cget('-values') . " " . Tkx::list($fields[3]); # leaf's label string
 			$combo->configure(-values => $v);
 		}
 	}
