@@ -20,20 +20,20 @@ my $top = undef;
 ################################################################
 ## subroutines
 
-## set toplevel window to sticky
-sub sticky_window {
-	my $top = shift;
-	Tkx::wm_withdraw($top);
-	my $wid = Tkx::winfo_id($top);
+# ## set toplevel window to sticky
+# sub sticky_window {
+# 	my $top = shift;
+# 	Tkx::wm_withdraw($top);
+# 	my $wid = Tkx::winfo_id($top);
 
-	# get parent window id
-	my $str = qx(xwininfo -tree -id $wid);
-	$str =~ /Parent window id: *([x[:xdigit:]]*)/i;
-	my $pwid = $1;
+# 	# get parent window id
+# 	my $str = qx(xwininfo -tree -id $wid);
+# 	$str =~ /Parent window id: *([x[:xdigit:]]*)/i;
+# 	my $pwid = $1;
 
-	system("xprop -id $pwid -format _NET_WM_DESKTOP 32c -set _NET_WM_DESKTOP 0xFFFFFFFF");
-	Tkx::wm_deiconify($top);
-}
+# 	system("xprop -id $pwid -format _NET_WM_DESKTOP 32c -set _NET_WM_DESKTOP 0xFFFFFFFF");
+# 	Tkx::wm_deiconify($top);
+# }
 
 ## return socket client
 sub uim_helper {
@@ -162,15 +162,29 @@ my $mw = Tkx::widget->new('.');
 $mw->g_wm_withdraw();
 # main window
 $top = $mw->new_toplevel();
-$top->g_wm_withdraw();
+#$top->g_wm_withdraw();
 $top->new_button(-text => 'exit', -command => sub {$mw->g_destroy();}
                 )->g_pack(-side => 'right');
-$top->g_wm_focusmodel('active');
-$top->g_wm_attributes(-topmost => 1);
-$top->g_wm_transient($mw);
-$top->g_wm_attributes(-type => 'dock');
+# $top->g_wm_focusmodel('active');
+# $top->g_wm_attributes(-topmost => 1);
+# $top->g_wm_transient($mw);
+# $top->g_wm_attributes(-type => 'dock');
 Tkx::tk_useinputmethods(0);
-Tkx::after(1000, [\&sticky_window, $top]);
+
+# overrideredirect & drag-move
+$top->g_bind('<ButtonPress-1>' => [sub {
+	my $winpx = shift;
+	my $winpy = shift;
+	$top->g_bind('<B1-Motion>' => [sub {
+		my $w = shift;
+		my $rootpx = Tkx::winfo_pointerx($w);
+		my $rootpy = Tkx::winfo_pointery($w);
+		$top->g_wm_geometry(sprintf("+%i+%i", $rootpx - $winpx, $rootpy - $winpy));
+	                               }, Tkx::Ev('%W')]);
+                                   }, Tkx::Ev('%x', '%y')]);
+$top->g_wm_overrideredirect(1);
+
+#Tkx::after(1000, [\&sticky_window, $top]);
 
 ## get prop list information
 Tkx::after(100, [\&send_message, "prop_list_get\n\n"]);
