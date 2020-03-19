@@ -161,7 +161,10 @@ if ($pid == 0) {
 my $mw = Tkx::widget->new('.');
 $mw->g_wm_withdraw();
 # main window
-$top = $mw->new_toplevel();
+my $top_parent = $mw->new_toplevel();
+# main window frame
+$top = $top_parent->new_frame(-borderwidth => 5);
+$top->g_pack();
 #$top->g_wm_withdraw();
 $top->new_button(-text => 'exit', -command => sub {$mw->g_destroy();}
                 )->g_pack(-side => 'right');
@@ -172,17 +175,17 @@ $top->new_button(-text => 'exit', -command => sub {$mw->g_destroy();}
 Tkx::tk_useinputmethods(0);
 
 # overrideredirect & drag-move
-$top->g_bind('<ButtonPress-1>' => [sub {
+$top_parent->g_bind('<ButtonPress-1>' => [sub {
 	my $winpx = shift;
 	my $winpy = shift;
-	$top->g_bind('<B1-Motion>' => [sub {
+	$top_parent->g_bind('<B1-Motion>' => [sub {
 		my $w = shift;
 		my $rootpx = Tkx::winfo_pointerx($w);
 		my $rootpy = Tkx::winfo_pointery($w);
-		$top->g_wm_geometry(sprintf("+%i+%i", $rootpx - $winpx, $rootpy - $winpy));
+		$top_parent->g_wm_geometry(sprintf("+%i+%i", $rootpx - $winpx, $rootpy - $winpy));
 	                               }, Tkx::Ev('%W')]);
                                    }, Tkx::Ev('%x', '%y')]);
-$top->g_wm_overrideredirect(1);
+$top_parent->g_wm_overrideredirect(1);
 
 #Tkx::after(1000, [\&sticky_window, $top]);
 
