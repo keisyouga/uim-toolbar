@@ -180,7 +180,7 @@ $mw->g_wm_withdraw();
 $top = $mw->new_toplevel();
 $frame = $top->new_frame(-borderwidth => 5);
 $frame->g_pack(-side => 'left');
-$top->new_button(-text => 'exit', -command => sub {$mw->g_destroy();}
+$top->new_button(-text => 'exit', -padx => 0, -command => sub {$mw->g_destroy();}
                 )->g_pack(-side => 'right');
 Tkx::tk_useinputmethods(0);
 
