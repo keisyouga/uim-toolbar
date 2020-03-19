@@ -17,6 +17,9 @@ my %props = ();
 # main window
 my $top = undef;
 
+# frame, it contain menubuttons
+my $frame = undef;
+
 ################################################################
 ## subroutines
 
@@ -54,6 +57,14 @@ sub uim_helper {
 	return $client;
 }
 
+## menubutton action
+sub menu_command {
+	my $id = shift;           # indication_id
+	my $act = $props{$id}[5]; # leaf's action id
+	# send action
+	Tkx::after(100, sub {send_message("prop_activate\n${act}\n\n")});
+}
+
 sub read_cb {
 	my $chan = shift;
 	my $buf = Tkx::read($chan);
@@ -65,40 +76,46 @@ sub read_cb {
 	my @lines = split("\n", $buf);
 
 	## parse
-	## prop_list_update: delete all comboboxes
-	## branch: create combobox
-	## leaf: add item to combobox
-	my $combo = undef;
+	## prop_list_update: delete all menubuttons
+	## branch: create menubutton widget, menu widget
+	## leaf: add item to menu
+	my $menu = undef;
+	my $menubutton = undef;
 	for my $line (@lines) {
 		#print STDERR "$line\n";
 		my @fields = split /\t/, $line;
 
 		if ($line =~ /^prop_list_update/) {
-			Tkx::destroy(keys %props);
-			$combo = undef;
+			# destroy all menubuttons
+			Tkx::destroy(Tkx::SplitList($frame->g_winfo_children()));
+
+			# clear %props
 			%props = ();
 		}
 
 		if ($line =~ /^branch/) {
-			$combo = $top->new_ttk__combobox(-state => 'readonly');
-			$combo->set($fields[3]); # branch's label string
-			$combo->g_pack(-side => 'left');
-			$combo->g_bind('<<ComboboxSelected>>' =>
-			               [sub {
-				                my $w = shift;
-				                my $act = ${$props{$w}[$w->current]}[5]; # leaf's action id
-				                # send action
-				                Tkx::after(100, sub {send_message("prop_activate\n${act}\n\n")});
-			                }, $combo]); # pass to subroutine combobox widget path
+			# menu must be child of menubutton, so create menubutton first
+			$menubutton = $frame->new_menubutton(-direction => 'right', -relief => 'raised');
+			$menu = $menubutton->new_menu(-tearoff => 0);
+			$menubutton->configure(-menu => $menu);
+			$menubutton->g_pack(-side => 'left');
 		}
 
-		if ($combo && $line =~ /^leaf/) {
-			# append to props. $combo used as hash-key
-			$props{$combo}[scalar @{$props{$combo}}] = \@fields;
+		if ($line =~ /^leaf/) {
+			if ($menubutton && $menu) {
+				# append \@fields to props
+				my $id = $fields[1]; # indication_id
+				$props{$id} = \@fields;
 
-			# append combobox item
-			my $v = $combo->cget('-values') . " " . Tkx::list($fields[3]); # leaf's label string
-			$combo->configure(-values => $v);
+				# append menu item
+				my $str = $fields[3]; # menu label
+				# selected item
+				if ($line =~ /\*$/) {
+					$menubutton->configure(-text => $fields[2]);
+					$str = $str . '*';
+				}
+				$menu->add_command(-label => $str, -command => [\&menu_command, $id]);
+			}
 		}
 	}
 }
@@ -160,32 +177,25 @@ if ($pid == 0) {
 
 my $mw = Tkx::widget->new('.');
 $mw->g_wm_withdraw();
-# main window
-my $top_parent = $mw->new_toplevel();
-# main window frame
-$top = $top_parent->new_frame(-borderwidth => 5);
-$top->g_pack();
-#$top->g_wm_withdraw();
+$top = $mw->new_toplevel();
+$frame = $top->new_frame(-borderwidth => 5);
+$frame->g_pack(-side => 'left');
 $top->new_button(-text => 'exit', -command => sub {$mw->g_destroy();}
                 )->g_pack(-side => 'right');
-# $top->g_wm_focusmodel('active');
-# $top->g_wm_attributes(-topmost => 1);
-# $top->g_wm_transient($mw);
-# $top->g_wm_attributes(-type => 'dock');
 Tkx::tk_useinputmethods(0);
 
 # overrideredirect & drag-move
-$top_parent->g_bind('<ButtonPress-1>' => [sub {
+$top->g_bind('<ButtonPress-1>' => [sub {
 	my $winpx = shift;
 	my $winpy = shift;
-	$top_parent->g_bind('<B1-Motion>' => [sub {
+	$top->g_bind('<B1-Motion>' => [sub {
 		my $w = shift;
 		my $rootpx = Tkx::winfo_pointerx($w);
 		my $rootpy = Tkx::winfo_pointery($w);
-		$top_parent->g_wm_geometry(sprintf("+%i+%i", $rootpx - $winpx, $rootpy - $winpy));
+		$top->g_wm_geometry(sprintf("+%i+%i", $rootpx - $winpx, $rootpy - $winpy));
 	                               }, Tkx::Ev('%W')]);
                                    }, Tkx::Ev('%x', '%y')]);
-$top_parent->g_wm_overrideredirect(1);
+$top->g_wm_overrideredirect(1);
 
 #Tkx::after(1000, [\&sticky_window, $top]);
 
